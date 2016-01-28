@@ -1,3 +1,7 @@
 from django.shortcuts import render
+from datetime import datetime
 
-# Create your views here.
+def ubike(request):
+	return render(request,'ubike.html',{
+		'refresh_time': datetime.now(),
+		})
