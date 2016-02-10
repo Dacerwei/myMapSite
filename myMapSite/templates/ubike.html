@@ -41,22 +41,19 @@
 			}).addTo(map);
 
 			var ubikeStation=[];
-			theData = {{ mydata }}
-			$.getJSON(theData, function(myObject){
-				for (var s in myObject.retVal) {
-					ubikeStation.push(myObject.retVal[s]);
-				};
-				for (var i=0; i<ubikeStation.length; i++) {
-					var theStation = ubikeStation[i];
-					var position = [parseFloat(theStation.lat),parseFloat(theStation.lng)];
-					var marker = L.marker(position).addTo(map);
-					marker.bindPopup("地址："+theStation.ar+"<br>可借車輛/可還車輛："+theStation.sbi+" / "+theStation.bemp);
-				};
-			});
-			
-			var data = $.get(url,function(data){
-				console.log(data);
-			});
+			theData = {{ station_data|safe }};
+
+			for (var s in theData.retVal) {
+				ubikeStation.push(theData.retVal[s]);
+			};
+			console.log(ubikeStation);
+			for (var i=0; i<ubikeStation.length; i++) {
+				var theStation = ubikeStation[i];
+				var position = [parseFloat(theStation.lat),parseFloat(theStation.lng)];
+				var marker = L.marker(position).addTo(map);
+				marker.bindPopup("地址："+theStation.ar+"<br>可借車輛/可還車輛："+theStation.sbi+" / "+theStation.bemp);
+			};
+
 		</script>
 	</body>
 </html>

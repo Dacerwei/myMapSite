@@ -17,9 +17,9 @@ def ubike(request):
 	except urllib.URLError as e:
 		print(e)
 	else:
-	    data =gzip.open(response,'rb').read().decode('utf8')
+	    data =gzip.open(response,'r').read().decode("utf8")
 	    dataInJson = json.loads(data)
 	return render(request,'ubike.html',{
 		'refresh_time': datetime.now(),
-		'mydata':dataInJson,
+		'station_data': dataInJson,
 		})
