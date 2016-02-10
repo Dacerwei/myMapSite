@@ -28,6 +28,7 @@
 			<p>{{ refresh_time }}</p>
 		</div>
 		<div id="map" class="container"></div>
+		<div>{{ mydata }}</div>
 		<script type="text/javascript">
 
 			var url = "http://data.taipei/youbike";
@@ -40,8 +41,8 @@
 			}).addTo(map);
 
 			var ubikeStation=[];
-
-			$.getJSON("YouBikeTP.json", function(myObject){
+			theData = {{ mydata }}
+			$.getJSON(theData, function(myObject){
 				for (var s in myObject.retVal) {
 					ubikeStation.push(myObject.retVal[s]);
 				};
