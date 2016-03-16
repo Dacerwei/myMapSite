@@ -7,6 +7,13 @@ from urllib.error import URLError
 import gzip
 import json
 
+def ubikelinechart(request):
+	data = station.objects.filter(datetime = "2016-03-15 11:39:26")
+
+	return render(request,'ubikelinechart.html',{
+		'stations':data,
+		})
+
 
 def ubike(request):
 	url = urllib.request.Request("http://data.taipei/youbike")
@@ -19,10 +26,11 @@ def ubike(request):
 		print(e)
 	else:
 	    data =json.loads(gzip.open(response,'r').read().decode("utf8"))
-	    if not station.objects.all():
-	    	station_create(data)
-	    else:
-	    	station_update(data)
+	    station_create(data) #將站點資料寫入資料庫
+	    # if not station.objects.all():
+	    # 	station_create(data)
+	    # else:
+	    # 	station_update(data)
 	return render(request,'ubike.html',{
 		'refresh_time': datetime.now(),
 		'station_data': data,
@@ -32,13 +40,14 @@ def station_create(new_data):
 	all_stations = new_data["retVal"]
 	for s,v in all_stations.items():
 		station.objects.create(
-			id = v["sno"],
 			sno = v["sno"],
 			sna = v["sna"],
+			snaen = v["snaen"],
 			tot = v["tot"],
 			sbi = int(v["sbi"]),
 			sarea = v["sarea"],
-			mday = datetime.strptime(v["mday"],"%Y%m%d%H%M%S"),
+			datetime = datetime.strptime(v["mday"],"%Y%m%d%H%M%S"),
+			mday = v["mday"],
 			lat = float(v["lat"]),
 			lng = float(v["lng"]),
 			ar = v["ar"],

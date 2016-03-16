@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Ubike line chart</title>
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Year', 'Sales', 'Expenses'],
+          ['2004',  1000,      400],
+          ['2005',  1170,      460],
+          ['2006',  660,       1120],
+          ['2007',  1030,      540]
+        ]);
+
+        var options = {
+          title: 'YouBike Station Data',
+          legend: { position: 'bottom' }
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+
+        chart.draw(data, options);
+      }
+    </script>
+	<link rel="stylesheet" href="">
+	<style type="text/css" media="screen">
+		#curve_chart{
+			width: 100%;
+			height: 500px;
+			margin: 0px auto;
+		}
+		div h1{
+			text-align: center;
+		}
+	</style>
+</head>
+<body>
+	<div><h1>YouBike Station Record</h1></div>
+	<div id="curve_chart"></div>
+	<div>{{ stations }}</div>
+</body>
+</html>

@@ -15,9 +15,10 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from ubike.views import ubike
+from ubike.views import ubike,ubikelinechart
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^ubike/$', ubike),
+    url(r'^ubikelinechart/$',ubikelinechart)
 ]
