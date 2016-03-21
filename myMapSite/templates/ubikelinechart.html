@@ -11,16 +11,11 @@
 
 
       function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-          ['Year', 'Sales', 'Expenses'],
-          ['2004',  1000,      400],
-          ['2005',  1170,      460],
-          ['2006',  660,       1120],
-          ['2007',  1030,      540]
-        ]);
+
+        var data = google.visualization.arrayToDataTable({{  stations|safe }});
 
         var options = {
-          title: 'YouBike Station Data',
+          title: "{{ chartname|safe}}",
           legend: { position: 'bottom' }
         };
 
@@ -29,7 +24,7 @@
         chart.draw(data, options);
       }
     </script>
-	<link rel="stylesheet" href="">
+
 	<style type="text/css" media="screen">
 		#curve_chart{
 			width: 100%;
@@ -44,6 +39,6 @@
 <body>
 	<div><h1>YouBike Station Record</h1></div>
 	<div id="curve_chart"></div>
-	<div>{{ stations }}</div>
+	{# <div>{{ stations }}</div> #}
 </body>
 </html>

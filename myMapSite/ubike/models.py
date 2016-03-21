@@ -18,5 +18,5 @@ class station(models.Model):
 	datetime = models.DateTimeField() #資料插入時間
 
 	def __str__(self):
-		return self.sna + str(self.mday)
+		return str(self.sno) +self.datetime.strftime(" %Y/%m/%d %H:%M")
 

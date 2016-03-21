@@ -24,7 +24,6 @@
 	<body>
 		<div>
 			<h1>Taipei YouBike</h1>
-			<p>Chinwei Hsu</p>
 			<p>{{ refresh_time }}</p>
 		</div>
 		<div class="btn" style="text-align: center">
@@ -53,7 +52,7 @@
 				var theStation = ubikeStation[i];
 				var position = [parseFloat(theStation.lat),parseFloat(theStation.lng)];
 				var marker = L.marker(position).addTo(map);
-				marker.bindPopup("地址："+theStation.ar+"<br>可借車輛/可還車輛："+theStation.sbi+" / "+theStation.bemp);
+				marker.bindPopup("地址："+theStation.ar+"<br>可借車輛/可還車輛："+theStation.sbi+" / "+theStation.bemp+"<br><a href=http://127.0.0.1:8000/ubikelinechart/?st=sthestation.sno>歷時資料</a>");
 			};
 
 		</script>

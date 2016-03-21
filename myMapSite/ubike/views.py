@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from datetime import datetime
 from ubike.models import station
+from django.utils import timezone
 import urllib.request
 from urllib.error import HTTPError
 from urllib.error import URLError
@@ -8,10 +9,21 @@ import gzip
 import json
 
 def ubikelinechart(request):
-	data = station.objects.filter(datetime = "2016-03-15 11:39:26")
+	st1 = station.objects.filter(sno = 240)
+	data = []
+	data.append(["time","sbi","bemp"])
+	chartname = str(st1[0].sno)+" : "+st1[0].ar 
+
+	for item in st1:
+		temp = []
+		temp.append(item.datetime.strftime("%Y/%m/%d %H:%M"))
+		temp.append(item.sbi)
+		temp.append(item.bemp)
+		data.append(temp)
 
 	return render(request,'ubikelinechart.html',{
-		'stations':data,
+		'chartname': chartname,
+		'stations': data,
 		})
 
 
@@ -40,13 +52,14 @@ def station_create(new_data):
 	all_stations = new_data["retVal"]
 	for s,v in all_stations.items():
 		station.objects.create(
-			sno = v["sno"],
+			sno = int(v["sno"]),
 			sna = v["sna"],
 			snaen = v["snaen"],
 			tot = v["tot"],
 			sbi = int(v["sbi"]),
 			sarea = v["sarea"],
-			datetime = datetime.strptime(v["mday"],"%Y%m%d%H%M%S"),
+			datetime = timezone.now(),
+			#datetime = datetime.strptime(v["mday"],"%Y%m%d%H%M%S"),
 			mday = v["mday"],
 			lat = float(v["lat"]),
 			lng = float(v["lng"]),
