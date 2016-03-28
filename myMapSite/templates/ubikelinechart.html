@@ -1,44 +1,72 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Ubike line chart</title>
-	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-	<script type="text/javascript">
-      google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<title>Ubike line chart</title>
+		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css">
+		<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+		<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+		<script type="text/javascript">
 
+		var allStationData = {{ stations|safe }};
 
-      function drawChart() {
+		$(document).ready(function(){
+			var map = L.map('map').setView([25.037569, 121.545632], 14);
+			L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',{
+				attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+				id: 'geojedi.ooj08o8c',
+				accessToken: 'pk.eyJ1IjoiZ2VvamVkaSIsImEiOiJjaWpvMDNwYnMwMHRidmFseDRhOGNrZjIwIn0.hkVHv9_Z-PpXfOLrKMlfCQ'
+			}).addTo(map);
+			
+			google.charts.load('current', {'packages':['corechart']});
+			// google.charts.setOnLoadCallback(drawChart);
+		});
 
-        var data = google.visualization.arrayToDataTable({{  stations|safe }});
-
-        var options = {
-          title: "{{ chartname|safe}}",
-          legend: { position: 'bottom' }
-        };
-
-        var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
-
-        chart.draw(data, options);
-      }
-    </script>
-
-	<style type="text/css" media="screen">
-		#curve_chart{
-			width: 100%;
-			height: 500px;
-			margin: 0px auto;
+		function drawChart(id) {
+		var theData = [['time','可借車輛','可還車位']];
+		theData = theData.concat(allStationData[id-1].data);
+		var data = google.visualization.arrayToDataTable(theData);
+		var options = {
+		title: allStationData[id-1].ar+" : "+id,
+		legend: { position: 'bottom' }
+		};
+		var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+		chart.draw(data, options);
 		}
-		div h1{
-			text-align: center;
-		}
-	</style>
-</head>
-<body>
-	<div><h1>YouBike Station Record</h1></div>
-	<div id="curve_chart"></div>
-	{# <div>{{ stations }}</div> #}
-</body>
+		</script>
+		<style type="text/css" media="screen">
+			#map{
+				height: 500px;
+				width: 80%;
+				margin: 0px auto;
+			}
+			#curve_chart{
+				float: left;
+				width: 100%;
+				height: 500px;
+				margin: 0px auto;
+			}
+			div h1{
+				text-align: center;
+			}
+			.station{
+				float: left;
+			}
+			
+		</style>
+	</head>
+	<body>
+		<div><h1>YouBike Station Record</h1></div>
+		<div id="map" class="container"></div>
+		<div class="stationSet">
+			{% for station in stations%}
+			<div id="station-{{station.sno}}" class="station">
+				<button type="button" onclick="drawChart({{station.sno}})">Station:{{ station.sno }}</button>
+			</div>
+			{% endfor%}
+		</div>
+		<div id="curve_chart"></div>
+	</body>
 </html>

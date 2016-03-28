@@ -9,21 +9,19 @@ import gzip
 import json
 
 def ubikelinechart(request):
-	st1 = station.objects.filter(sno = 240)
-	data = []
-	data.append(["time","sbi","bemp"])
-	chartname = str(st1[0].sno)+" : "+st1[0].ar 
-
-	for item in st1:
-		temp = []
-		temp.append(item.datetime.strftime("%Y/%m/%d %H:%M"))
-		temp.append(item.sbi)
-		temp.append(item.bemp)
-		data.append(temp)
+	allStations = []
+	chartname = "50 youbike stations "
+	for x in range(1,50):
+		temp = station.objects.filter(sno=x,datetime__year=2016,datetime__month=2,datetime__day=28)
+		aStation = {"sno":x,"ar":temp[0].ar,"position":[temp[0].lat,temp[0].lng]}
+		station_data = []
+		for d in temp:
+			station_data.append([d.datetime.strftime("%H:%M"),d.sbi,d.bemp])
+		aStation.update({"data":station_data})
+		allStations.append(aStation)
 
 	return render(request,'ubikelinechart.html',{
-		'chartname': chartname,
-		'stations': data,
+		'stations': allStations,
 		})
 
 
