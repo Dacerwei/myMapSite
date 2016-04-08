@@ -5,68 +5,103 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<title>Ubike line chart</title>
 		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css">
+		<link rel="stylesheet" type="text/css" src="bootstrap/css/bootstrap.min.css">
 		<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
 		<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
 		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 		<script type="text/javascript">
-
-		var allStationData = {{ stations|safe }};
-
+		var allStationData = {{ stations|safe }}; //loading data
 		$(document).ready(function(){
-			var map = L.map('map').setView([25.037569, 121.545632], 14);
+			var map = L.map('map').setView([25.0408578889, 121.567904444], 13);
 			L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',{
 				attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
 				id: 'geojedi.ooj08o8c',
 				accessToken: 'pk.eyJ1IjoiZ2VvamVkaSIsImEiOiJjaWpvMDNwYnMwMHRidmFseDRhOGNrZjIwIn0.hkVHv9_Z-PpXfOLrKMlfCQ'
 			}).addTo(map);
-			
-			google.charts.load('current', {'packages':['corechart']});
-			// google.charts.setOnLoadCallback(drawChart);
-		});
+			var markers = [];
+			customCircleMarker = L.CircleMarker.extend({
+				options: {
+					id: 0,
+					ar: 'address'
+				}
+			});
+			for (var s=0; s<allStationData.length; s++){
 
-		function drawChart(id) {
-		var theData = [['time','可借車輛','可還車位']];
-		theData = theData.concat(allStationData[id-1].data);
-		var data = google.visualization.arrayToDataTable(theData);
-		var options = {
-		title: allStationData[id-1].ar+" : "+id,
-		legend: { position: 'bottom' }
-		};
-		var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
-		chart.draw(data, options);
+					var theMarker = new customCircleMarker(allStationData[s].position,{
+						id: allStationData[s].sno,
+						ar: allStationData[s].ar,
+						fillOpacity: 0.5,
+						color: checkColor(allStationData[s].data[0][1])
+					});
+					
+					theMarker.on('click', function(e){
+						var theID=this.options.id;
+						drawChart(theID);
+						console.log(this.getLatLng());
+					});
+					markers.push(theMarker);
+				};
+				var stations = L.layerGroup(markers);
+				stations.addTo(map);
+				google.charts.load('current', {'packages':['corechart']});
+			});
+
+		function checkColor(sbi){
+			if(sbi >= 10){
+				return '#00FF60';
+			}else if (sbi >= 5 & sbi <10){
+				return '#E8B50C';
+			}else{
+				return '#FF0000';
+			}
 		}
-		</script>
-		<style type="text/css" media="screen">
-			#map{
-				height: 500px;
-				width: 80%;
-				margin: 0px auto;
+			function drawChart(id) {
+				var theData = [['time','可借車輛','可還車位']];
+				theData = theData.concat(allStationData[id-1].data);
+				var data = google.visualization.arrayToDataTable(theData);
+				var options = {
+					title: allStationData[id-1].ar+" : "+id,
+					legend: { position: 'bottom' }
+					};
+				var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+				chart.draw(data, options);
 			}
-			#curve_chart{
-				float: left;
-				width: 100%;
-				height: 500px;
-				margin: 0px auto;
-			}
-			div h1{
-				text-align: center;
-			}
-			.station{
-				float: left;
-			}
-			
-		</style>
-	</head>
-	<body>
-		<div><h1>YouBike Station Record</h1></div>
-		<div id="map" class="container"></div>
-		<div class="stationSet">
-			{% for station in stations%}
-			<div id="station-{{station.sno}}" class="station">
-				<button type="button" onclick="drawChart({{station.sno}})">Station:{{ station.sno }}</button>
+			</script>
+			<style type="text/css" media="screen">
+				#map{
+					height: 600px;
+					width: 50%;
+					margin: 0px auto;
+					float: left;
+				}
+				#curve_chart{
+					float: left;
+					width: 50%;
+					height: 300px;
+				}
+				div h1{
+					text-align: center;
+				}
+				.station{
+					float: left;
+				}
+				.stationSet{
+					list-style: none;
+					float: left;
+				}
+			</style>
+		</head>
+		<body>
+			<div><h1>Taipei City YouBike</h1></div>
+			<div class="container-fluid">
+				<div class="row">
+					<div class="col-md-8">
+						<div id="map" class="container"></div>
+					</div>
+					<div class="col-md-4">
+						<div id="curve_chart"></div>
+					</div>
+				</div>
 			</div>
-			{% endfor%}
-		</div>
-		<div id="curve_chart"></div>
-	</body>
-</html>
+		</body>
+	</html>

@@ -11,7 +11,7 @@ import json
 def ubikelinechart(request):
 	allStations = []
 	chartname = "50 youbike stations "
-	for x in range(1,50):
+	for x in range(1,60):
 		temp = station.objects.filter(sno=x,datetime__year=2016,datetime__month=2,datetime__day=28)
 		aStation = {"sno":x,"ar":temp[0].ar,"position":[temp[0].lat,temp[0].lng]}
 		station_data = []
