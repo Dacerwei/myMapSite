@@ -1,0 +1,97 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<title>Taipei Youbike Data</title>
+		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css">
+		<link rel="stylesheet" type="text/css" src="bootstrap/css/bootstrap.min.css">
+		<link rel="stylesheet" type="text/css" href="{% static 'youbike.css' %}" />
+		<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+		<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+		<script type="text/javascript">
+		var allStationData = {{ stations|safe }}; //loading data
+		$(document).ready(function(){
+			var map = L.map('map').setView([25.0408578889, 121.567904444], 13);
+			L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',{
+				attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+				id: 'geojedi.ooj08o8c',
+				accessToken: 'pk.eyJ1IjoiZ2VvamVkaSIsImEiOiJjaWpvMDNwYnMwMHRidmFseDRhOGNrZjIwIn0.hkVHv9_Z-PpXfOLrKMlfCQ'
+			}).addTo(map);
+			var markers = [];
+			customCircleMarker = L.CircleMarker.extend({
+				options: {
+					id: 0,
+					ar: 'address'
+				}
+			});
+			for (var s=0; s<allStationData.length; s++){
+				var theMarker = new customCircleMarker(allStationData[s].position,{
+					id: allStationData[s].sno,
+					ar: allStationData[s].ar,
+					fillOpacity: 0.5,
+					color: getColor(allStationData[s].data[0][1])
+				});
+				theMarker.on('click', function(e){
+					var theID=this.options.id;
+					drawLineChart(theID);
+					drawHistogram(theID);
+					console.log(this.getLatLng());
+				});
+				markers.push(theMarker);
+			};
+			var stations = L.layerGroup(markers);
+			stations.addTo(map);
+			google.charts.load('current', {'packages':['corechart']});
+		});
+
+		function getColor(d){
+			return d>10 ? '#00FF60':
+				   d>=5 ? '#E8B50C':
+				   '#FF0000';
+		}
+
+		function drawLineChart(id) {
+			var theData = [['time','可借車輛','可還車位']];
+			theData = theData.concat(allStationData[id-1].data);
+			var data = google.visualization.arrayToDataTable(theData);
+			var options = {
+				title: allStationData[id-1].ar+" : "+id,
+				legend: { position: 'bottom',textStyle: {color: 'gray'}},
+				backgroundColor: {fill:'#171717'},
+				width: 400,
+				titleTextStyle: {color: 'gray'},
+				hAxis:{textStyle:{color:'gray'}},
+				};
+			var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+			chart.draw(data, options);
+		}
+
+		function drawHistogram(id) {
+			var theData = [['time','可借車輛','可還車輛']];
+			theData = theData.concat(allStationData[id-1].data);
+			var data = google.visualization.arrayToDataTable(theData);
+
+			var options = {
+				title: '使用頻率分布圖',
+				legend: { position: 'none',
+							textStyle:{color:'gray'}},
+				backgroundColor: {fill:'#171717'},
+				width: 400,
+				titleTextStyle: {color: 'gray'},
+			};
+        	var chart = new google.visualization.Histogram(document.getElementById('histogram_chart'));
+        	chart.draw(data, options);
+        }
+		</script>
+		</head>
+		<body>
+			<div><h1>Youbike Data Visualization</h1></div>
+			<div id="map" class="container"></div>
+			<div id="curve_chart" class="chart"></div>
+			<div id="histogram_chart" class="chart"></div>
+			<button type="button" onclick="location.href='/youbikerealtime'">Realtime Map</button>
+		</body>
+	</html>

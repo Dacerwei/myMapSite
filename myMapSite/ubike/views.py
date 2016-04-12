@@ -8,24 +8,24 @@ from urllib.error import URLError
 import gzip
 import json
 
-def ubikelinechart(request):
+def youbike(request):
 	allStations = []
-	chartname = "50 youbike stations "
-	for x in range(1,60):
+	for x in range(1,225):
 		temp = station.objects.filter(sno=x,datetime__year=2016,datetime__month=2,datetime__day=28)
-		aStation = {"sno":x,"ar":temp[0].ar,"position":[temp[0].lat,temp[0].lng]}
-		station_data = []
-		for d in temp:
-			station_data.append([d.datetime.strftime("%H:%M"),d.sbi,d.bemp])
-		aStation.update({"data":station_data})
-		allStations.append(aStation)
+		if(temp):
+			aStation = {"sno":x,"ar":temp[0].ar,"position":[temp[0].lat,temp[0].lng]}
+			station_data = []
+			for d in temp:
+				station_data.append([d.datetime.strftime("%H:%M"),d.sbi,d.bemp])
+			aStation.update({"data":station_data})
+			allStations.append(aStation)
 
-	return render(request,'ubikelinechart.html',{
+	return render(request,'youbike.html',{
 		'stations': allStations,
 		})
 
 
-def ubike(request):
+def youbikerealtime(request):
 	url = urllib.request.Request("http://data.taipei/youbike")
 	url.add_header("Accept-encoding", "gzip")
 	try :
@@ -41,7 +41,7 @@ def ubike(request):
 	    # 	station_create(data)
 	    # else:
 	    # 	station_update(data)
-	return render(request,'ubike.html',{
+	return render(request,'youbikerealtimemap.html',{
 		'refresh_time': datetime.now(),
 		'station_data': data,
 		})
