@@ -78,12 +78,20 @@ WSGI_APPLICATION = 'myMapSite.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'mapsite',
-        'USER': 'postgres',
-        'PASSWORD': '',
+        'NAME': 'mysit',
+        'USER': 'r04228027',
+        'PASSWORD': 'r04228027',
         'HOST': 'localhost',
         'PORT': '5432',
     }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
+    #     'NAME': 'mapsite',
+    #     'USER': 'postgres',
+    #     'PASSWORD': '',
+    #     'HOST': 'localhost',
+    #     'PORT': '5432',
+    # }
 }
 
 
