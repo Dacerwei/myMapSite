@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<title>Taipei Youbike Data</title>
+		<title>Youbike Data Visualization</title>
 		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css">
 		<link rel="stylesheet" type="text/css" src="bootstrap/css/bootstrap.min.css">
 		<link rel="stylesheet" type="text/css" href="{% static 'youbike.css' %}" />
@@ -12,7 +12,10 @@
 		<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
 		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 		<script type="text/javascript">
-		var allStationData = {{ stations|safe }}; //loading data
+
+		var allStationData = {{ stations|safe }}; //讀入所有的資料
+
+		//初始化頁面
 		$(document).ready(function(){
 			var map = L.map('map').setView([25.0408578889, 121.567904444], 13);
 			L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',{
@@ -21,12 +24,15 @@
 				accessToken: 'pk.eyJ1IjoiZ2VvamVkaSIsImEiOiJjaWpvMDNwYnMwMHRidmFseDRhOGNrZjIwIn0.hkVHv9_Z-PpXfOLrKMlfCQ'
 			}).addTo(map);
 			var markers = [];
+
+			//marker屬性設定
 			customCircleMarker = L.CircleMarker.extend({
 				options: {
 					id: 0,
 					ar: 'address'
 				}
 			});
+
 			for (var s=0; s<allStationData.length; s++){
 				var theMarker = new customCircleMarker(allStationData[s].position,{
 					id: allStationData[s].sno,
@@ -42,17 +48,20 @@
 				});
 				markers.push(theMarker);
 			};
+
 			var stations = L.layerGroup(markers);
 			stations.addTo(map);
 			google.charts.load('current', {'packages':['corechart']});
 		});
 
+		//依數值決定marker呈現的顏色
 		function getColor(d){
 			return d>10 ? '#00FF60':
 				   d>=5 ? '#E8B50C':
 				   '#FF0000';
 		}
 
+		//畫折線圖
 		function drawLineChart(id) {
 			var theData = [['time','可借車輛','可還車位']];
 			theData = theData.concat(allStationData[id-1].data);
@@ -61,7 +70,7 @@
 				title: allStationData[id-1].ar+" : "+id,
 				legend: { position: 'bottom',textStyle: {color: 'gray'}},
 				backgroundColor: {fill:'#171717'},
-				width: 400,
+				width: '30%',
 				titleTextStyle: {color: 'gray'},
 				hAxis:{textStyle:{color:'gray'}},
 				};
@@ -69,18 +78,18 @@
 			chart.draw(data, options);
 		}
 
+		//畫直方圖
 		function drawHistogram(id) {
 			var theData = [['time','可借車輛','可還車輛']];
 			theData = theData.concat(allStationData[id-1].data);
 			var data = google.visualization.arrayToDataTable(theData);
-
 			var options = {
 				title: '使用頻率分布圖',
 				legend: { position: 'none',
 							textStyle:{color:'gray'}},
 				backgroundColor: {fill:'#171717'},
-				width: 400,
-				titleTextStyle: {color: 'gray'},
+				width: '30%',
+				titleTextStyle: {color:'gray'},
 			};
         	var chart = new google.visualization.Histogram(document.getElementById('histogram_chart'));
         	chart.draw(data, options);
@@ -92,6 +101,5 @@
 			<div id="map" class="container"></div>
 			<div id="curve_chart" class="chart"></div>
 			<div id="histogram_chart" class="chart"></div>
-			<button type="button" onclick="location.href='/youbikerealtime'">Realtime Map</button>
 		</body>
 	</html>
