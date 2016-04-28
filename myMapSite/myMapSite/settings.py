@@ -126,6 +126,13 @@ STATIC_ROOT = 'static'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR,"ubike/static/ubike/css"),
+    os.path.join(BASE_DIR,"ubike/static/ubike/bower_components/jquery/dist"),
+    os.path.join(BASE_DIR,"ubike/static/ubike/bower_components/moment/min"),
+    os.path.join(BASE_DIR,"ubike/static/ubike/bower_components/bootstrap/dist/js"),
+    os.path.join(BASE_DIR,"ubike/static/ubike/bower_components/eonasdan-bootstrap-datetimepicker/build/js"),
+    os.path.join(BASE_DIR,"ubike/static/ubike/bower_components/bootstrap/dist/css"),
+    os.path.join(BASE_DIR,"ubike/static/ubike/bower_components/eonasdan-bootstrap-datetimepicker/build/css"),
+    os.path.join(BASE_DIR,"ubike/static/ubike/bower_components/bootstrap/dist/fonts"),
 ]
 
-STATIC_URL = '/static/'
+STATIC_URL = '/static/fonts/'

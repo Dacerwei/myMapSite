@@ -5,18 +5,34 @@
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<title>Youbike Data Visualization</title>
-		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css">
-		<link rel="stylesheet" type="text/css" src="bootstrap/css/bootstrap.min.css">
-		<link rel="stylesheet" type="text/css" href="{% static 'youbike.css' %}" />
+
 		<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
 		<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
 		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css">
+		<link rel="stylesheet" type="text/css" href="{% static 'youbike.css' %}">
+		<link rel="stylesheet" type="text/css" src="bootstrap/css/bootstrap.min.css">
+		<link rel="stylesheet" href="{% static 'bootstrap.min.css' %}">
+		{# datepickertest #}
+		{# // <script type="text/javascript" src="{% static 'jquery.min.js' %}"></script> #}
+  		<script type="text/javascript" src="{% static 'moment.min.js' %}"></script>
+  		<script type="text/javascript" src="{% static 'bootstrap.min.js' %}"></script>
+  		<script type="text/javascript" src="{% static 'bootstrap-datetimepicker.min.js' %}"></script>
+  		<link rel="stylesheet" href="{% static 'bootstrap.min.css' %}" />
+  		<link rel="stylesheet" href="{% static 'bootstrap-datetimepicker.min.css' %}" />
+		{# ============== #}
+
 		<script type="text/javascript">
 
 		var allStationData = {{ stations|safe }}; //讀入所有的資料
 
 		//初始化頁面
 		$(document).ready(function(){
+
+			$('#datetimepicker1').datetimepicker({
+				format: 'YYYY/MM/DD'
+			});
+
 			var map = L.map('map').setView([25.0408578889, 121.567904444], 13);
 			L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',{
 				attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
@@ -52,6 +68,7 @@
 			var stations = L.layerGroup(markers);
 			stations.addTo(map);
 			google.charts.load('current', {'packages':['corechart']});
+
 		});
 
 		//依數值決定marker呈現的顏色
@@ -94,10 +111,42 @@
         	var chart = new google.visualization.Histogram(document.getElementById('histogram_chart'));
         	chart.draw(data, options);
         }
+
+        function highlightFeature(e) {
+        	var layer = e.target;
+		    layer.setStyle({
+		        weight: 5,
+		        color: '#666',
+		        dashArray: '',
+		        fillOpacity: 0.7
+		    });
+
+		    if (!L.Browser.ie && !L.Browser.opera) {
+		        layer.bringToFront();
+		    }
+		}
+
 		</script>
 		</head>
 		<body>
 			<div><h1>台北市運輸地圖</h1></div>
+			<div class="container">
+				<div class="row">
+				    <div class='col-sm-6'>
+				        <div class="form-group">
+				            <div class='input-group date' id='datetimepicker1'>
+				                <input type='text' class="form-control" />
+				                <span class="input-group-addon">
+				                	<span class="glyphicon glyphicon-calendar"></span>
+				                </span>
+				                <span class="searchbar">
+				                	<button type="button" class="btn btn-primary">Search</button>
+				                </span>
+				            </div>
+				        </div>
+				    </div>
+				</div>
+			</div>
 			<div id="map" class="container"></div>
 			<div id="curve_chart" class="chart"></div>
 			<div id="histogram_chart" class="chart"></div>
