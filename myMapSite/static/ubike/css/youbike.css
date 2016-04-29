@@ -1,7 +1,14 @@
 /* stylesheet for ubikelinechart.html */
 
-body{
+html body{
 background-color: black;
+}
+
+.searchbar .btn-primary{
+	margin-left: 10px;
+	color: gray;
+    background-color: #EAEAEA;
+    border-color: #EAEAEA;
 }
 
 #map{
