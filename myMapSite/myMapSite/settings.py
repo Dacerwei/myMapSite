@@ -135,4 +135,4 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR,"ubike/static/ubike/bower_components/bootstrap/dist/fonts"),
 ]
 
-STATIC_URL = '/static/fonts/'
+STATIC_URL = '/static/'

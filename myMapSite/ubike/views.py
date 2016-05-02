@@ -8,9 +8,16 @@ from urllib.error import URLError
 import gzip
 import json
 
+# from .forms import ToDoForm
+
 def youbike(request):
 	allStations = []
-	for x in range(1,225):
+	# form = ToDoForm(request.GET)
+	# if form.is_valid():
+	# 	print("yes")
+	# else:
+	# 	print(form.errors)
+	for x in range(1,5):
 		temp = station.objects.filter(sno=x,datetime__year=2016,datetime__month=2,datetime__day=28)
 		if(temp):
 			aStation = {"sno":x,"ar":temp[0].ar,"position":[temp[0].lat,temp[0].lng]}

@@ -5,7 +5,8 @@ html body{
 background-color: black;
 }
 
-.searchbar .btn-primary{
+.searchButton .btn-primary{
+	margin-top: 20px;
 	margin-left: 10px;
 	color: gray;
     background-color: #EAEAEA;
