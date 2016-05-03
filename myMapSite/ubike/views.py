@@ -11,19 +11,17 @@ from .forms import dateSearch
 
 def youbike(request):
 	allStations = []
+
 	dateForm = dateSearch(request.GET)
-	
+
 	if dateForm.is_valid():
 		print("valid succeed")
-		print("from_date="+ str(dateForm.cleaned_data['from_date'].day))
-		print("to_date="+str(dateForm.cleaned_data['to_date'].day))
+		print("search data from dates: "+dateForm.cleaned_data['from_date'].__str__()+" to "+dateForm.cleaned_data['to_date'].__str__())
+		search_date_from = dateForm.cleaned_data['from_date']
+		search_date_to = dateForm.cleaned_data['to_date']
 
-		searchYear = dateForm.cleaned_data['from_date'].year
-		searchMonth = dateForm.cleaned_data['from_date'].month
-		searchDay = dateForm.cleaned_data['from_date'].day
-
-		for x in range(1,5):
-			temp = station.objects.filter(sno=x,datetime__year = searchYear,datetime__month = searchMonth,datetime__day = searchDay)
+		for x in range(1,20):
+			temp = station.objects.filter(sno=x,datetime__gte = search_date_from,datetime__lte = search_date_to)
 			if(temp):
 				aStation = {"sno":x,"ar":temp[0].ar,"position":[temp[0].lat,temp[0].lng]}
 				station_data = []
@@ -34,11 +32,9 @@ def youbike(request):
 	else:
 		print("valid failed")
 
-	
-
-	
-
 	return render(request,'youbike.html',{
+		'date_from_default':str(search_date_from),
+		'date_to_default':str(search_date_to),
 		'stations': allStations,
 		})
 

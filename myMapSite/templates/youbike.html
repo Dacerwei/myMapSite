@@ -64,11 +64,13 @@
 
 			$('#datetimepicker1').datetimepicker({
 				format: 'YYYY-MM-DD',
+				defaultDate: "{{ date_from_default }}"
 			});
 
 			$('#datetimepicker2').datetimepicker({
 				format: 'YYYY-MM-DD',
 				useCurrent: false,
+				defaultDate: "{{ date_to_default }}"
 			});
 
 			$('#datetimepicker1').on('dp.change', function(e){
