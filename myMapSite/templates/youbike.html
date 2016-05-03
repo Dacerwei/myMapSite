@@ -6,7 +6,6 @@
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<title>Youbike Data Visualization</title>
-
 		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css">
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
   		<link rel="stylesheet" href="{% static 'bootstrap-datetimepicker.min.css' %}" />
@@ -20,7 +19,7 @@
 				    <span style="color:white">From</span>
 				        <div class="form-group">
 				            <div class='input-group date' id='datetimepicker1'>
-				                <input type='text' class="form-control" />
+				                <input data-format="YYYY-MM-DD" type='text' name="from_date" class="form-control" />
 				                <span class="input-group-addon">
 				                	<span class="glyphicon glyphicon-calendar"></span>
 				                </span>
@@ -31,7 +30,7 @@
 				    <span style="color:white">To</span>
 				        <div class="form-group">
 				            <div class='input-group date' id='datetimepicker2'>
-				                <input type='text' class="form-control" />
+				                <input data-format="YYYY-MM-DD" type='text' name="to_date" class="form-control" />
 				                <span class="input-group-addon">
 				                	<span class="glyphicon glyphicon-calendar"></span>
 				                </span>
@@ -40,7 +39,7 @@
 				    </div>
 				    <div class="col-sm-2">
 				    	<div class="searchButton">
-	                		<button id="summit" type="button" class="btn btn-primary" href="">Search</button>
+	                		<button id="search" type="button" class="btn btn-primary">Search</button>
 				        </div>
 				    </div>
 				</div>
@@ -57,37 +56,35 @@
 		<script type="text/javascript" src="{% static 'moment.min.js' %}"></script>
   		<script type="text/javascript" src="{% static 'bootstrap-datetimepicker.min.js' %}"></script>
   		<script type="text/javascript">
+
 		var allStationData = {{ stations|safe }}; //讀入所有的資料
 
 		//初始化頁面
 		$(document).ready(function(){
+
 			$('#datetimepicker1').datetimepicker({
-				format: 'YYYY/MM/DD',
+				format: 'YYYY-MM-DD',
 			});
 
 			$('#datetimepicker2').datetimepicker({
-				format: 'YYYY/MM/DD',
+				format: 'YYYY-MM-DD',
 				useCurrent: false,
 			});
 
-			var searchDateFrom;
-			var searchDateTo;
 			$('#datetimepicker1').on('dp.change', function(e){
 				$('#datetimepicker2').data("DateTimePicker").minDate(e.date);
-				searchDateFrom = $('#datetimepicker1').data("DateTimePicker");
-				console.log(searchDateFrom.viewDate());
-				//$("#summit").attr("href", "?123")
 			})
+
 			$('#datetimepicker2').on('dp.change', function(e){
 				$('#datetimepicker1').data("DateTimePicker").maxDate(e.date);
-				searchDateTo = $('#datetimepicker2').data("DateTimePicker");
-				console.log(searchDateTo.viewDate());
-				//$("#summit").attr("href", "?123")
 			})
 
-			$()
-
-
+			$("#search").click(function(){
+				searchDateFrom = $("#datetimepicker1").find("input").val();
+				searchDateTo = $("#datetimepicker2").find("input").val();
+				//console.log(searchDateFrom,searchDateTo);
+				location.href = "?from_date=" + searchDateFrom + "&to_date=" + searchDateTo;
+			})
 
 			var map = L.map('map').setView([25.0408578889, 121.567904444], 13);
 			L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',{
@@ -181,5 +178,6 @@
 		        layer.bringToFront();
 		    }
 		}
+
 		</script>
 	</html>

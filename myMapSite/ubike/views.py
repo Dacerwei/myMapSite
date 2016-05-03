@@ -7,25 +7,36 @@ from urllib.error import HTTPError
 from urllib.error import URLError
 import gzip
 import json
-
-# from .forms import ToDoForm
+from .forms import dateSearch
 
 def youbike(request):
 	allStations = []
-	# form = ToDoForm(request.GET)
-	# if form.is_valid():
-	# 	print("yes")
-	# else:
-	# 	print(form.errors)
-	for x in range(1,5):
-		temp = station.objects.filter(sno=x,datetime__year=2016,datetime__month=2,datetime__day=28)
-		if(temp):
-			aStation = {"sno":x,"ar":temp[0].ar,"position":[temp[0].lat,temp[0].lng]}
-			station_data = []
-			for d in temp:
-				station_data.append([d.datetime.strftime("%H:%M"),d.sbi,d.bemp])
-			aStation.update({"data":station_data})
-			allStations.append(aStation)
+	dateForm = dateSearch(request.GET)
+	
+	if dateForm.is_valid():
+		print("valid succeed")
+		print("from_date="+ str(dateForm.cleaned_data['from_date'].day))
+		print("to_date="+str(dateForm.cleaned_data['to_date'].day))
+
+		searchYear = dateForm.cleaned_data['from_date'].year
+		searchMonth = dateForm.cleaned_data['from_date'].month
+		searchDay = dateForm.cleaned_data['from_date'].day
+
+		for x in range(1,5):
+			temp = station.objects.filter(sno=x,datetime__year = searchYear,datetime__month = searchMonth,datetime__day = searchDay)
+			if(temp):
+				aStation = {"sno":x,"ar":temp[0].ar,"position":[temp[0].lat,temp[0].lng]}
+				station_data = []
+				for d in temp:
+					station_data.append([d.datetime.strftime("%H:%M"),d.sbi,d.bemp])
+				aStation.update({"data":station_data})
+				allStations.append(aStation)
+	else:
+		print("valid failed")
+
+	
+
+	
 
 	return render(request,'youbike.html',{
 		'stations': allStations,
