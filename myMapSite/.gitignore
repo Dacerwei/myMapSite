@@ -7,4 +7,4 @@ myMapSite/ubike/__pycache__/forms.cpython-34.pyc
 myMapSite/ubike/__pycache__/models.cpython-34.pyc
 myMapSite/ubike/__pycache__/views.cpython-34.pyc
 myMapSite/ubike/migrations/__pycache__/0002_lasted_station.cpython-34.pyc
-setting.py
+myMapSite/setting.py
