@@ -57,46 +57,68 @@
   		<script type="text/javascript" src="{% static 'bootstrap-datetimepicker.min.js' %}"></script>
   		<script type="text/javascript">
 
-		var allStationData = {{ stations|safe }}; //讀入所有的資料
+  		//讀入所有需求時間內的youbike站點資料
+		var allStationData = {{ stations|safe }}; 
 
-		//初始化頁面
+		//初始化頁面：當所有資源皆載入後呈現網站畫面
 		$(document).ready(function(){
 
+		//----------------------------------------------
+		//時間區間選擇器：讓使用者可以選擇資料起始與結束的日期
+		//---------------------------------------------- 
+			//初始化日期選擇器1
 			$('#datetimepicker1').datetimepicker({
 				format: 'YYYY-MM-DD',
 				defaultDate: "{{ date_from_default }}"
 			});
-
+			//初始化日期選擇器2
 			$('#datetimepicker2').datetimepicker({
 				format: 'YYYY-MM-DD',
 				useCurrent: false,
 				defaultDate: "{{ date_to_default }}"
 			});
 
+			//使起始與結束日期欄位具有連動效果
 			$('#datetimepicker1').on('dp.change', function(e){
 				$('#datetimepicker2').data("DateTimePicker").minDate(e.date);
 			})
 
+			//使起始與結束日期欄位具有連動效果
 			$('#datetimepicker2').on('dp.change', function(e){
 				$('#datetimepicker1').data("DateTimePicker").maxDate(e.date);
 			})
 
+			//在search button被點擊時觸發事件，將搜尋日期傳送至server端
 			$("#search").click(function(){
-				searchDateFrom = $("#datetimepicker1").find("input").val();
-				searchDateTo = $("#datetimepicker2").find("input").val();
-				//console.log(searchDateFrom,searchDateTo);
-				location.href = "?from_date=" + searchDateFrom + "&to_date=" + searchDateTo;
-			})
 
+				//取得目前datetimepicker1欄位內的值
+				searchDateFrom = $("#datetimepicker1").find("input").val();
+
+				//取得目前datetimepicker2欄位內的值
+				searchDateTo = $("#datetimepicker2").find("input").val();
+
+				//將日期參數加入url並重新導向刷新頁面
+				location.href = "?from_date=" + searchDateFrom + "&to_date=" + searchDateTo;
+			}) 
+
+		//----------------------------------------------
+		//Leaflet地圖：於地圖上呈現使用者所需的資訊
+		//----------------------------------------------
+
+			//產生地圖物件，並設定起始中心位置與比例尺
 			var map = L.map('map').setView([25.0408578889, 121.567904444], 13);
+
+			//使用mapbox api 輸入金鑰取得地圖底圖，並加入地圖物件中
 			L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',{
 				attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
 				id: 'geojedi.ooj08o8c',
 				accessToken: 'pk.eyJ1IjoiZ2VvamVkaSIsImEiOiJjaWpvMDNwYnMwMHRidmFseDRhOGNrZjIwIn0.hkVHv9_Z-PpXfOLrKMlfCQ'
 			}).addTo(map);
-			var markers = [];
 
-			//marker屬性設定
+			
+			
+
+			//站點圖示屬性設定
 			customCircleMarker = L.CircleMarker.extend({
 				options: {
 					id: 0,
@@ -104,6 +126,8 @@
 				}
 			});
 
+			//產生youbike站點點位圖示
+			var markers = [];
 			for (var s=0; s<allStationData.length; s++){
 				var theMarker = new customCircleMarker(allStationData[s].position,{
 					id: allStationData[s].sno,
@@ -124,6 +148,45 @@
 			stations.addTo(map);
 			google.charts.load('current', {'packages':['corechart']});
 
+
+			//加入地圖圖例
+			var legend = L.control({position:'bottomright'});
+			legend.onAdd = function (map) {
+				var div = L.DomUtil.create('div','info legend');
+				var grades = [0,5,10];
+				var labels = [];
+
+				for (var i = 0; i < grades.length; i++) {
+					div.innerHTML +=
+					'<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+					grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+				};
+				return div;
+			};
+			legend.addTo(map);
+
+
+			var info = L.control();
+
+			info.onAdd = function (map) {
+				this._div  = L.DomUtil.create('div','info');
+				this.update();
+				return this._div;
+			};
+
+			info.update = function(station) {
+				this._div.innerHTML = '<h4>Youbike station information</h4>' +  (station ? '<b>' + station.ar +'</b><br />' +station.bemp + 'bikes / mi<sup>2</sup>':'Hover over a station');
+			}
+
+			info.addTo(map);
+
+			function hightlightStation(e) {
+				info.update(stations.options);
+			}
+
+			function resetHightlight(e) {
+				info.update();
+			}
 		});
 
 		//依數值決定marker呈現的顏色

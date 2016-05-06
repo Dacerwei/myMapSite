@@ -11,7 +11,8 @@ from .forms import dateSearch
 
 def youbike(request):
 	allStations = []
-
+	search_date_from = ""
+	search_date_to = ""
 	dateForm = dateSearch(request.GET)
 
 	if dateForm.is_valid():
@@ -71,7 +72,6 @@ def station_create(new_data):
 			sbi = int(v["sbi"]),
 			sarea = v["sarea"],
 			datetime = timezone.now(),
-			#datetime = datetime.strptime(v["mday"],"%Y%m%d%H%M%S"),
 			mday = v["mday"],
 			lat = float(v["lat"]),
 			lng = float(v["lng"]),
