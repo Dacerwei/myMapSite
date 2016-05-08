@@ -127,25 +127,59 @@
 			});
 
 			//產生youbike站點點位圖示
-			var markers = [];
+			var markers_sbi = [];
+			var markers_bemp = [];
 			for (var s=0; s<allStationData.length; s++){
-				var theMarker = new customCircleMarker(allStationData[s].position,{
+				var marker_sbi = new customCircleMarker(allStationData[s].position,{
 					id: allStationData[s].sno,
-					ar: allStationData[s].ar,
+					ar: String(allStationData[s].ar),
 					fillOpacity: 0.5,
+					sbi: parseInt(allStationData[s].data[0][1]),
 					color: getColor(allStationData[s].data[0][1])
 				});
-				theMarker.on('click', function(e){
+
+				var marker_bemp = new customCircleMarker(allStationData[s].position,{
+					id: allStationData[s].sno,
+					ar: String(allStationData[s].ar),
+					fillOpacity: 0.5,
+					bemp: parseInt(allStationData[s].data[0][2]),
+					color: getColor(allStationData[s].data[0][2])
+				});
+
+				marker_sbi.on('click', function(e){
 					var theID=this.options.id;
 					drawLineChart(theID);
 					drawHistogram(theID);
-					console.log(this.getLatLng());
+					console.log(this.options.ar+" sbi:"+ this.options.sbi);
 				});
-				markers.push(theMarker);
+
+				marker_bemp.on('click', function(e){
+					var theID=this.options.id;
+					drawLineChart(theID);
+					drawHistogram(theID);
+					console.log(this.options.ar+" bemp:"+this.options.bemp);
+				});
+
+				markers_sbi.push(marker_sbi);
+				markers_bemp.push(marker_bemp);
+
 			};
 
-			var stations = L.layerGroup(markers);
-			stations.addTo(map);
+			var stations_bemp = L.layerGroup(markers_sbi);
+
+			var stations_sbi = L.layerGroup(markers_bemp);
+
+			stations_sbi.addTo(map);
+
+			stations_bemp.addTo(map);
+
+			var overlayMaps = {
+				"可借數量":stations_sbi,
+				"可還數量":stations_bemp
+			};
+
+			L.control.layers(overlayMaps).addTo(map);
+
 			google.charts.load('current', {'packages':['corechart']});
 
 
@@ -166,7 +200,7 @@
 			legend.addTo(map);
 
 
-			var info = L.control();
+			var info = L.control({position:'bottomleft'});
 
 			info.onAdd = function (map) {
 				this._div  = L.DomUtil.create('div','info');
