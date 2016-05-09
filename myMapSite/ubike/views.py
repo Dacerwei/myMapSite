@@ -1,10 +1,11 @@
 from django.shortcuts import render
+from django.utils import timezone
 from datetime import datetime
 from ubike.models import station
-from django.utils import timezone
-import urllib.request
+from ubike.models import lasted_station
 from urllib.error import HTTPError
 from urllib.error import URLError
+import urllib.request
 import gzip
 import json
 from .forms import dateSearch
@@ -24,10 +25,15 @@ def youbike(request):
 		for x in range(1,20):
 			temp = station.objects.filter(sno=x,datetime__gte = search_date_from,datetime__lte = search_date_to)
 			if(temp):
-				aStation = {"sno":x,"ar":temp[0].ar,"position":[temp[0].lat,temp[0].lng]}
+				aStation = {"sno":x,
+							"ar":temp[0].ar,
+							"position":[temp[0].lat,temp[0].lng]}
+
 				station_data = []
+
 				for d in temp:
-					station_data.append([d.datetime.strftime("%H:%M"),d.sbi,d.bemp])
+					station_data.append([d.datetime.strftime("%b/%d %H:%M"),d.sbi,d.bemp])
+
 				aStation.update({"data":station_data})
 				allStations.append(aStation)
 	else:
