@@ -1,5 +1,4 @@
 {% load staticfiles %}
-
 <!DOCTYPE html>
 <html>
 	<head>
@@ -59,6 +58,53 @@
 
   		//讀入所有需求時間內的youbike站點資料
 		var allStationData = {{ stations|safe }}; 
+
+		function getStationDataByID(id){
+			return  allStationData.map(function(e) { return e.station_ID; }).indexOf(id);
+		}
+
+		//依數值決定marker呈現的顏色
+		function getColor(d){
+			return d>10 ? '#00FF60':
+				   d>=5 ? '#E8B50C':
+				   '#FF0000';
+		}
+
+		//畫折線圖
+		function drawLineChart(id) {
+			var Index = getStationDataByID(id);
+			var theData = [['time','可借車輛','可還車位']];
+			theData = theData.concat(allStationData[Index]['time_series_data']);
+			var data = google.visualization.arrayToDataTable(theData);
+			var options = {
+				title: allStationData[Index].address+" : "+id,
+				legend: { position: 'bottom',textStyle: {color: 'gray'}},
+				backgroundColor: {fill:'#171717'},
+				width: '30%',
+				titleTextStyle: {color: 'gray'},
+				hAxis:{textStyle:{color:'gray'}},
+				};
+			var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+			chart.draw(data, options);
+		}
+
+		//畫直方圖
+		function drawHistogram(id) {
+			var Index = getStationDataByID(id);
+			var theData = [['time','可借車輛','可還車輛']];
+			theData = theData.concat(allStationData[Index]['time_series_data']);
+			var data = google.visualization.arrayToDataTable(theData);
+			var options = {
+				title: '使用頻率分布圖',
+				legend: { position: 'none',
+							textStyle:{color:'gray'}},
+				backgroundColor: {fill:'#171717'},
+				width: '30%',
+				titleTextStyle: {color:'gray'},
+			};
+        	var chart = new google.visualization.Histogram(document.getElementById('histogram_chart'));
+        	chart.draw(data, options);
+        }
 
 		//初始化頁面：當所有資源皆載入後呈現網站畫面
 		$(document).ready(function(){
@@ -128,29 +174,29 @@
 			var markers_bemp = [];
 			for (var s=0; s<allStationData.length; s++){
 				var marker_sbi = new customCircleMarker(allStationData[s].position,{
-					id: allStationData[s].sno,
-					ar: String(allStationData[s].ar),
+					id: allStationData[s].station_ID,
+					ar: String(allStationData[s].address),
 					type: '可借數量',
-					val: parseInt(allStationData[s].data[0][1]),
+					val: parseInt(allStationData[s]['time_series_data'][0][1]),
 				});
 
 				var marker_bemp = new customCircleMarker(allStationData[s].position,{
-					id: allStationData[s].sno,
-					ar: String(allStationData[s].ar),
+					id: allStationData[s].station_ID,
+					ar: String(allStationData[s].address),
 					type: '可還數量',
-					val: parseInt(allStationData[s].data[0][2]),
+					val: parseInt(allStationData[s]['time_series_data'][0][2]),
 				});
 
 				marker_sbi.setStyle({
-					fillOpacity: 0.6,
+					fillOpacity: 0.5,
 					weight: 0,
-					color: getColor(allStationData[s].data[0][1])
+					color: getColor(allStationData[s]['time_series_data'][0][1])
 				})
 
 				marker_bemp.setStyle({
-					fillOpacity: 0.6,
+					fillOpacity: 0.5,
 					weight: 0,
-					color: getColor(allStationData[s].data[0][1])
+					color: getColor(allStationData[s]['time_series_data'][0][2])
 				})
 
 				marker_sbi.on('click', function(e){
@@ -186,7 +232,7 @@
 				marker_sbi.on('mouseout',function(e){
 					this.setStyle({
 						weight: 0,
-						fillOpacity: 0.6
+						fillOpacity: 0.5
 					});
 					info.update();
 				});
@@ -194,7 +240,7 @@
 				marker_bemp.on('mouseout',function(e){
 					this.setStyle({
 						weight: 0,
-						fillOpacity: 0.6
+						fillOpacity: 0.5
 					});
 					info.update();
 				});
@@ -209,8 +255,6 @@
 			var stations_bemp = L.layerGroup(markers_bemp);
 
 			stations_sbi.addTo(map);
-
-			//stations_bemp.addTo(map);
 
 			var overlayMaps = {
 				"可借數量":stations_sbi,
@@ -254,47 +298,5 @@
 
 			info.addTo(map);
 		});
-
-		//依數值決定marker呈現的顏色
-		function getColor(d){
-			return d>10 ? '#00FF60':
-				   d>=5 ? '#E8B50C':
-				   '#FF0000';
-		}
-
-		//畫折線圖
-		function drawLineChart(id) {
-			var theData = [['time','可借車輛','可還車位']];
-			theData = theData.concat(allStationData[id-1].data);
-			var data = google.visualization.arrayToDataTable(theData);
-			var options = {
-				title: allStationData[id-1].ar+" : "+id,
-				legend: { position: 'bottom',textStyle: {color: 'gray'}},
-				backgroundColor: {fill:'#171717'},
-				width: '30%',
-				titleTextStyle: {color: 'gray'},
-				hAxis:{textStyle:{color:'gray'}},
-				};
-			var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
-			chart.draw(data, options);
-		}
-
-		//畫直方圖
-		function drawHistogram(id) {
-			var theData = [['time','可借車輛','可還車輛']];
-			theData = theData.concat(allStationData[id-1].data);
-			var data = google.visualization.arrayToDataTable(theData);
-			var options = {
-				title: '使用頻率分布圖',
-				legend: { position: 'none',
-							textStyle:{color:'gray'}},
-				backgroundColor: {fill:'#171717'},
-				width: '30%',
-				titleTextStyle: {color:'gray'},
-			};
-        	var chart = new google.visualization.Histogram(document.getElementById('histogram_chart'));
-        	chart.draw(data, options);
-        }
-
 		</script>
 	</html>

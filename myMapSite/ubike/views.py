@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.utils import timezone
-from datetime import datetime
+from datetime     import datetime
 from ubike.models import station
 from ubike.models import lasted_station
 from urllib.error import HTTPError
@@ -11,31 +11,51 @@ import json
 from .forms import dateSearch
 
 def youbike(request):
-	allStations = []
 	search_date_from = ""
 	search_date_to = ""
 	dateForm = dateSearch(request.GET)
-
+	allStations = []
 	if dateForm.is_valid():
 		print("valid succeed")
 		print("search data from dates: "+dateForm.cleaned_data['from_date'].__str__()+" to "+dateForm.cleaned_data['to_date'].__str__())
 		search_date_from = dateForm.cleaned_data['from_date']
 		search_date_to = dateForm.cleaned_data['to_date']
 
-		for x in range(1,20):
-			temp = station.objects.filter(sno=x,datetime__gte = search_date_from,datetime__lte = search_date_to)
-			if(temp):
-				aStation = {"sno":x,
-							"ar":temp[0].ar,
-							"position":[temp[0].lat,temp[0].lng]}
+		#取得以站點id排序的原始資料
+		allData = sorted(station.objects.filter(datetime__gte = search_date_from,datetime__lte = search_date_to),key = lambda x:x.sno)
+		
+		#紀錄目前站點id
+		val = 0
 
-				station_data = []
+		#暫時儲存目前處理的站點資料
+		aStation = {}
 
-				for d in temp:
-					station_data.append([d.datetime.strftime("%b/%d %H:%M"),d.sbi,d.bemp])
+		for i in allData:
+			stationID = i.sno
+			#此筆資料為一座新站點資料
+			if(stationID != val):
 
-				aStation.update({"data":station_data})
+				#若非第一筆資料則須先將暫存資料存入allStations
+				if(len(allStations) > 0): 
+					allStations.append(aStation)
+				#建立新站點的暫存資料
+				aStation = {
+					'station_ID':stationID,
+					'address':i.ar,
+					'position':[i.lat,i.lng],
+					'time_series_data':[[i.datetime.strftime("%b/%d %H:%M"),i.sbi,i.bemp]],
+				}
+
+				#將新建立的站點推入allStation
 				allStations.append(aStation)
+
+				#紀錄目前出裡的站點id
+				val = stationID
+
+			#此筆資料為一座舊站點資料
+			elif (stationID == val):
+				allStations[-1]['time_series_data'].append([i.datetime.strftime("%b/%d %H:%M"),i.sbi,i.bemp])
+
 	else:
 		print("valid failed")
 
