@@ -7,14 +7,18 @@
 		<title>Youbike Data Visualization</title>
 		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css">
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+		{# for bootstrap slider #}
+		{# <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/7.0.2/css/bootstrap-slider.min.css"> #}
+  		{# for leaflet time slider plug in #}
+  		<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" type="text/css">
   		<link rel="stylesheet" href="{% static 'bootstrap-datetimepicker.min.css' %}" />
   		<link rel="stylesheet" type="text/css" href="{% static 'youbike.css' %}">
 		</head>
 		<body>
-			<div><h1>台北市運輸地圖</h1></div>
+			<div><h1>台北市公共運輸地圖</h1></div>
 			<div class="container">
 				<div class="row">
-				    <div class='col-sm-5'>
+				    <div class='col-md-5'>
 				    <span style="color:white">From</span>
 				        <div class="form-group">
 				            <div class='input-group date' id='datetimepicker1'>
@@ -25,7 +29,7 @@
 				            </div>
 				        </div>
 				    </div>
-				    <div class='col-sm-5'>
+				    <div class='col-md-5'>
 				    <span style="color:white">To</span>
 				        <div class="form-group">
 				            <div class='input-group date' id='datetimepicker2'>
@@ -36,29 +40,40 @@
 				            </div>
 				        </div>
 				    </div>
-				    <div class="col-sm-2">
+				    <div class="col-md-2">
 				    	<div class="searchButton">
 	                		<button id="search" type="button" class="btn btn-primary">Search</button>
 				        </div>
 				    </div>
 				</div>
+				<div class="row">
+					<div class="col-md-8 map-container">
+						<div id="map" class="container"></div>
+						<input type="text" id="current-datetime" readonly>
+						<div id="slider"></div>
+					</div>
+					<div class="col-md-4">
+						<div id="curve_chart" class="chart"></div>
+						<div id="histogram_chart" class="chart"></div>
+					</div>
+				</div>
 			</div>
-			<div id="map" class="container"></div>
-			<div id="curve_chart" class="chart"></div>
-			<div id="histogram_chart" class="chart"></div>
 		</body>
 
 		<script type="text/javascript" src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
 		<script type="text/javascript" src="https://code.jquery.com/jquery-1.10.2.js"></script>
 		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+		<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 		<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 		<script type="text/javascript" src="{% static 'moment.min.js' %}"></script>
+		<script type="text/javascript"src="{% static 'SliderControl.js' %}"></script>
   		<script type="text/javascript" src="{% static 'bootstrap-datetimepicker.min.js' %}"></script>
   		<script type="text/javascript">
 
   		//讀入所有需求時間內的youbike站點資料
 		var allStationData = {{ stations|safe }}; 
 
+		//藉由站點id取得該站於陣列中的index
 		function getStationDataByID(id){
 			return  allStationData.map(function(e) { return e.station_ID; }).indexOf(id);
 		}
@@ -77,10 +92,9 @@
 			theData = theData.concat(allStationData[Index]['time_series_data']);
 			var data = google.visualization.arrayToDataTable(theData);
 			var options = {
-				title: allStationData[Index].address+" : "+id,
+				title: "站點代號 : "+id+" 地址： " + allStationData[Index].address,
 				legend: { position: 'bottom',textStyle: {color: 'gray'}},
 				backgroundColor: {fill:'#171717'},
-				width: '30%',
 				titleTextStyle: {color: 'gray'},
 				hAxis:{textStyle:{color:'gray'}},
 				};
@@ -95,15 +109,31 @@
 			theData = theData.concat(allStationData[Index]['time_series_data']);
 			var data = google.visualization.arrayToDataTable(theData);
 			var options = {
-				title: '使用頻率分布圖',
-				legend: { position: 'none',
-							textStyle:{color:'gray'}},
+				title: 'Youbike 使用頻率分布圖',
+				legend: { position: 'none',textStyle:{color:'gray'}},
 				backgroundColor: {fill:'#171717'},
-				width: '30%',
 				titleTextStyle: {color:'gray'},
 			};
         	var chart = new google.visualization.Histogram(document.getElementById('histogram_chart'));
         	chart.draw(data, options);
+        }
+
+        //更新站點顏色
+        function updateDisplayColor(index,theLayerGroup,type) {
+        	theLayerGroup.eachLayer(function(station){
+        		if (station.options.timeline[index]) {
+	        		station.options.value = station.options.timeline[index][type];
+	        		station.setStyle({
+	        			color: getColor(station.options.value)
+	        		});
+        		} else {
+        			console.log(station.options.id+ " "+ station.options.type +" : no data");
+        			station.options.value = "no data";
+        			station.setStyle({
+        				color: "blue",
+        			});
+        		}
+        	});
         }
 
 		//初始化頁面：當所有資源皆載入後呈現網站畫面
@@ -152,10 +182,10 @@
 		//----------------------------------------------
 
 			//產生地圖物件，並設定起始中心位置與比例尺
-			var map = L.map('map').setView([25.0408578889, 121.567904444], 13);
+			var map = L.map('map').setView([25.0408578889, 121.567904444], 12);
 
 			//使用mapbox api 輸入金鑰取得地圖底圖，並加入地圖物件中
-			L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',{
+			var basemap =L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',{
 				attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
 				id: 'geojedi.ooj08o8c',
 				accessToken: 'pk.eyJ1IjoiZ2VvamVkaSIsImEiOiJjaWpvMDNwYnMwMHRidmFseDRhOGNrZjIwIn0.hkVHv9_Z-PpXfOLrKMlfCQ'
@@ -177,72 +207,76 @@
 					id: allStationData[s].station_ID,
 					ar: String(allStationData[s].address),
 					type: '可借數量',
-					val: parseInt(allStationData[s]['time_series_data'][0][1]),
+					value: allStationData[s]['time_series_data'][0][1],
+					timeline: allStationData[s]['time_series_data'],
 				});
 
 				var marker_bemp = new customCircleMarker(allStationData[s].position,{
 					id: allStationData[s].station_ID,
 					ar: String(allStationData[s].address),
 					type: '可還數量',
-					val: parseInt(allStationData[s]['time_series_data'][0][2]),
+					value: allStationData[s]['time_series_data'][0][2],
+					timeline: allStationData[s]['time_series_data'],
 				});
 
 				marker_sbi.setStyle({
 					fillOpacity: 0.5,
 					weight: 0,
-					color: getColor(allStationData[s]['time_series_data'][0][1])
+					color: getColor(marker_sbi.options.value)
 				})
 
 				marker_bemp.setStyle({
 					fillOpacity: 0.5,
 					weight: 0,
-					color: getColor(allStationData[s]['time_series_data'][0][2])
+					color: getColor(marker_bemp.options.value)
 				})
 
-				marker_sbi.on('click', function(e){
-					var theID=this.options.id;
-					drawLineChart(theID);
-					drawHistogram(theID);
-					console.log(this.options.ar+" sbi:"+ this.options.val);
+				//sbi marker 可借車輛事件監聽器
+				marker_sbi.on({
+					click : function(e){
+						var theID=this.options.id;
+						drawLineChart(theID);
+						drawHistogram(theID);
+						map.panTo(e.target.getLatLng());
+					},
+					mouseover : function(e){
+						this.setStyle({
+							weight: 5,
+							opacity: 1
+						});
+						info.update(this.options)
+					},
+					mouseout : function(e){
+						this.setStyle({
+							weight: 0,
+							fillOpacity: 0.5
+						});
+						info.update();
+					},
 				});
 
-				marker_bemp.on('click', function(e){
-					var theID=this.options.id;
-					drawLineChart(theID);
-					drawHistogram(theID);
-					console.log(this.options.ar+" bemp:"+this.options.val);
-				});
-
-				marker_sbi.on('mouseover',function(e){
-					this.setStyle({
-						weight: 5,
-						opacity: 1
-					});
-					info.update(this.options);
-				});
-
-				marker_bemp.on('mouseover',function(e){
-					this.setStyle({
-						weight: 5,
-						opacity: 1
-					});
-					info.update(this.options);
-				});
-
-				marker_sbi.on('mouseout',function(e){
-					this.setStyle({
-						weight: 0,
-						fillOpacity: 0.5
-					});
-					info.update();
-				});
-
-				marker_bemp.on('mouseout',function(e){
-					this.setStyle({
-						weight: 0,
-						fillOpacity: 0.5
-					});
-					info.update();
+				//bemp marker 可還車輛事件監聽器
+				marker_bemp.on({
+					click : function(e){
+						var theID=this.options.id;
+						drawLineChart(theID);
+						drawHistogram(theID);
+						map.panTo(e.target.getLatLng());
+					},
+					mouseover : function(e){
+						this.setStyle({
+							weight: 5,
+							opacity: 1
+						});
+						info.update(this.options)
+					},
+					mouseout : function(e){
+						this.setStyle({
+							weight: 0,
+							fillOpacity: 0.5
+						});
+						info.update();
+					},
 				});
 
 				markers_sbi.push(marker_sbi);
@@ -260,6 +294,22 @@
 				"可借數量":stations_sbi,
 				"可還數量":stations_bemp
 			};
+
+			
+
+			//加入地圖資訊
+			var info = L.control({position:'topright'});
+
+			info.onAdd = function (map) {
+				this._div  = L.DomUtil.create('div','info');
+				this.update();
+				return this._div;
+			};
+
+			info.update = function(station) {
+				this._div.innerHTML = '<h4>Youbike 站點資訊 </h4>' +  (station ? '<b>' + station.ar +'</b><br />'+ station.type+' : '+ station.value + ' 輛 ':'<br />Hover over a station');
+			}
+			info.addTo(map);
 
 			//加入圖層控制項目
 
@@ -283,20 +333,17 @@
 			};
 			legend.addTo(map);
 
-			//加入地圖資訊
-			var info = L.control({position:'bottomleft'});
+			$( "#slider" ).slider({
+				min: 0,
+				max: allStationData[0]['time_series_data'].length-1,
+				slide: function(e,ui) {
+					updateDisplayColor(ui.value,stations_sbi,1);
+					updateDisplayColor(ui.value,stations_bemp,2);
+					$("#current-datetime").val(allStationData[0]['time_series_data'][ui.value][0]);
+				}
+			});
+			$("#current-datetime").val(allStationData[0]['time_series_data'][0][0]);
 
-			info.onAdd = function (map) {
-				this._div  = L.DomUtil.create('div','info');
-				this.update();
-				return this._div;
-			};
-
-			info.update = function(station) {
-				this._div.innerHTML = '<h4>Youbike 站點資訊 </h4>' +  (station ? '<b>' + station.ar +'</b><br />'+ station.type+' : '+ station.val + ' 輛 ':'<br />Hover over a station');
-			}
-
-			info.addTo(map);
 		});
 		</script>
 	</html>
