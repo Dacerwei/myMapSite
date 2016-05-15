@@ -5,16 +5,14 @@
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<title>Youbike Data Visualization</title>
+		<link rel="stylesheet" type="text/css" href="{% static 'youbike.css' %}">
 		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css">
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-		{# for bootstrap slider #}
-		{# <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/7.0.2/css/bootstrap-slider.min.css"> #}
-  		{# for leaflet time slider plug in #}
   		<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" type="text/css">
   		<link rel="stylesheet" href="{% static 'bootstrap-datetimepicker.min.css' %}" />
-  		<link rel="stylesheet" type="text/css" href="{% static 'youbike.css' %}">
 		</head>
 		<body>
+		<div id="loading">Data Loading...</div>
 			<div><h1>台北市公共運輸地圖</h1></div>
 			<div class="container">
 				<div class="row">
@@ -82,7 +80,8 @@
 		function getColor(d){
 			return d>10 ? '#00FF60':
 				   d>=5 ? '#E8B50C':
-				   '#FF0000';
+				   d>=0 ? '#FF0000':
+				   'gray';
 		}
 
 		//畫折線圖
@@ -130,7 +129,7 @@
         			console.log(station.options.id+ " "+ station.options.type +" : no data");
         			station.options.value = "no data";
         			station.setStyle({
-        				color: "blue",
+        				color: "gray",
         			});
         		}
         	});
@@ -139,6 +138,7 @@
 		//初始化頁面：當所有資源皆載入後呈現網站畫面
 		$(document).ready(function(){
 
+			$('#loading').hide();
 		//----------------------------------------------
 		//時間區間選擇器：讓使用者可以選擇資料起始與結束的日期
 		//---------------------------------------------- 
@@ -307,7 +307,7 @@
 			};
 
 			info.update = function(station) {
-				this._div.innerHTML = '<h4>Youbike 站點資訊 </h4>' +  (station ? '<b>' + station.ar +'</b><br />'+ station.type+' : '+ station.value + ' 輛 ':'<br />Hover over a station');
+				this._div.innerHTML = '<h4>Youbike 站點資訊 </h4>' +  (station ? '<b>' + station.ar +'</b><br />'+ station.type+' : '+ station.value + ' 輛 ':'<br /> 請移動滑鼠至查詢站點');
 			}
 			info.addTo(map);
 
@@ -333,15 +333,18 @@
 			};
 			legend.addTo(map);
 
+			//加入時間控制滑軌
 			$( "#slider" ).slider({
 				min: 0,
 				max: allStationData[0]['time_series_data'].length-1,
+				//移動事件
 				slide: function(e,ui) {
 					updateDisplayColor(ui.value,stations_sbi,1);
 					updateDisplayColor(ui.value,stations_bemp,2);
 					$("#current-datetime").val(allStationData[0]['time_series_data'][ui.value][0]);
 				}
 			});
+			//設定滑軌初始值
 			$("#current-datetime").val(allStationData[0]['time_series_data'][0][0]);
 
 		});
