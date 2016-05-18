@@ -1,12 +1,16 @@
 /* stylesheet for ubikelinechart.html */
 
+.datepicker span {
+    color: gray;
+    letter-spacing: 0.5em;
+    font-weight: bold;
+}
+
 #loading {
-    color: lightgray;
-    text-align: center;
-    position: fixed;
-    padding: 25%;
+    position: absolute;
     width: 100%;
     height: 100%;
+    opacity: 0.8;
     background: #000 url(ubike/icon/loading.gif) center center;
     background-repeat: no-repeat;
     background-attachment: fixed;
@@ -15,7 +19,7 @@
 
 #current-datetime{
     position: absolute;
-    bottom: 5%;
+    bottom: 8%;
     left: 5%;
     border: 0px;
     background: transparent;
@@ -36,19 +40,27 @@ html body{
     border-color: #EAEAEA;
 }
 
+.realtimeButton .btn-primary{
+    margin-top: 20px;
+    margin-left: 10px;
+    color: gray;
+    background-color: #EAEAEA;
+    border-color: #EAEAEA;
+}
+
 .map-container{
     position: relative;
 }
 
 .map-container #slider{
     position: absolute;
-    bottom: 2%;
+    bottom: 4%;
     width: 50%;
     left: 5%;
 }
 
 #map{
-    height: 604px;
+    height: 600px;
     width: 100%;
     margin: 0px auto;
     z-index: 0;
@@ -69,8 +81,9 @@ html body{
 div h1{
     text-align: center;
     color: gray;
-    letter-spacing: 2px;
+    letter-spacing: 0.5em;
     font-family: -webkit-pictograph;
+    margin-top: 10px;
 }
 
 .station{
@@ -82,14 +95,7 @@ div h1{
     float: left;
 }
 
-button{
-    float: left;
-}
-
 .chart{
-    border-top-width: 1px;
-    border-top: solid;
-    border-color: gray;
     background-color: #0A0A0A;
 }
 

@@ -8,345 +8,335 @@
 		<link rel="stylesheet" type="text/css" href="{% static 'youbike.css' %}">
 		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css">
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-  		<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" type="text/css">
-  		<link rel="stylesheet" href="{% static 'bootstrap-datetimepicker.min.css' %}" />
-		</head>
-		<body>
-		<div id="loading">Data Loading...</div>
-			<div><h1>台北市公共運輸地圖</h1></div>
-			<div class="container">
-				<div class="row">
-				    <div class='col-md-5'>
-				    <span style="color:white">From</span>
-				        <div class="form-group">
-				            <div class='input-group date' id='datetimepicker1'>
-				                <input data-format="YYYY-MM-DD" type='text' name="from_date" class="form-control" />
-				                <span class="input-group-addon">
-				                	<span class="glyphicon glyphicon-calendar"></span>
-				                </span>
-				            </div>
-				        </div>
-				    </div>
-				    <div class='col-md-5'>
-				    <span style="color:white">To</span>
-				        <div class="form-group">
-				            <div class='input-group date' id='datetimepicker2'>
-				                <input data-format="YYYY-MM-DD" type='text' name="to_date" class="form-control" />
-				                <span class="input-group-addon">
-				                	<span class="glyphicon glyphicon-calendar"></span>
-				                </span>
-				            </div>
-				        </div>
-				    </div>
-				    <div class="col-md-2">
-				    	<div class="searchButton">
-	                		<button id="search" type="button" class="btn btn-primary">Search</button>
-				        </div>
-				    </div>
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" type="text/css">
+		<link rel="stylesheet" href="{% static 'bootstrap-datetimepicker.min.css' %}" />
+	</head>
+	<body>
+		<div id="loading"></div>
+		<div><h1>台北市公共運輸地圖</h1></div>
+		<div class="container">
+			<div class="row">
+				<div class='col-md-5 datepicker'>
+					<span>起始日期</span>
+					<div class="form-group">
+						<div class='input-group date' id='datetimepicker1'>
+							<input data-format="YYYY-MM-DD" type='text' name="from_date" class="form-control" />
+							<span class="input-group-addon">
+								<span class="glyphicon glyphicon-calendar"></span>
+							</span>
+						</div>
+					</div>
 				</div>
-				<div class="row">
-					<div class="col-md-8 map-container">
-						<div id="map" class="container"></div>
-						<input type="text" id="current-datetime" readonly>
-						<div id="slider"></div>
+				<div class='col-md-5 datepicker'>
+					<span>結束日期</span>
+					<div class="form-group">
+						<div class='input-group date' id='datetimepicker2'>
+							<input data-format="YYYY-MM-DD" type='text' name="to_date" class="form-control" />
+							<span class="input-group-addon">
+								<span class="glyphicon glyphicon-calendar"></span>
+							</span>
+						</div>
 					</div>
-					<div class="col-md-4">
-						<div id="curve_chart" class="chart"></div>
-						<div id="histogram_chart" class="chart"></div>
-					</div>
+				</div>
+				<div class="col-md-2">
+					<span class="searchButton">
+						<button id="search" type="button" class="btn btn-primary">搜尋</button>
+					</span>
+					<span class="realtimeButton">
+						<button id="realtime" type="button" class="btn btn-primary">即時資訊</button>
+					</span>
 				</div>
 			</div>
-		</body>
-
-		<script type="text/javascript" src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
-		<script type="text/javascript" src="https://code.jquery.com/jquery-1.10.2.js"></script>
-		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-		<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-		<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-		<script type="text/javascript" src="{% static 'moment.min.js' %}"></script>
-		<script type="text/javascript"src="{% static 'SliderControl.js' %}"></script>
-  		<script type="text/javascript" src="{% static 'bootstrap-datetimepicker.min.js' %}"></script>
-  		<script type="text/javascript">
-
-  		//讀入所有需求時間內的youbike站點資料
-		var allStationData = {{ stations|safe }}; 
-
-		//藉由站點id取得該站於陣列中的index
-		function getStationDataByID(id){
-			return  allStationData.map(function(e) { return e.station_ID; }).indexOf(id);
-		}
-
-		//依數值決定marker呈現的顏色
-		function getColor(d){
-			return d>10 ? '#00FF60':
-				   d>=5 ? '#E8B50C':
-				   d>=0 ? '#FF0000':
-				   'gray';
-		}
-
-		//畫折線圖
-		function drawLineChart(id) {
-			var Index = getStationDataByID(id);
-			var theData = [['time','可借車輛','可還車位']];
-			theData = theData.concat(allStationData[Index]['time_series_data']);
-			var data = google.visualization.arrayToDataTable(theData);
-			var options = {
-				title: "站點代號 : "+id+" 地址： " + allStationData[Index].address,
-				legend: { position: 'bottom',textStyle: {color: 'gray'}},
-				backgroundColor: {fill:'#171717'},
-				titleTextStyle: {color: 'gray'},
-				hAxis:{textStyle:{color:'gray'}},
-				};
-			var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
-			chart.draw(data, options);
-		}
-
-		//畫直方圖
-		function drawHistogram(id) {
-			var Index = getStationDataByID(id);
-			var theData = [['time','可借車輛','可還車輛']];
-			theData = theData.concat(allStationData[Index]['time_series_data']);
-			var data = google.visualization.arrayToDataTable(theData);
-			var options = {
-				title: 'Youbike 使用頻率分布圖',
-				legend: { position: 'none',textStyle:{color:'gray'}},
-				backgroundColor: {fill:'#171717'},
-				titleTextStyle: {color:'gray'},
+			<div class="row">
+				<div class="col-md-8 map-container">
+					<div id="map" class="container"></div>
+					<input type="text" id="current-datetime" readonly>
+					<div id="slider"></div>
+				</div>
+				<div class="col-md-4">
+					<div id="curve_chart" class="chart"></div>
+					<div id="histogram_chart" class="chart"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript" src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+	<script type="text/javascript" src="https://code.jquery.com/jquery-1.10.2.js"></script>
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+	<script type="text/javascript" src="{% static 'moment.min.js' %}"></script>
+	<script type="text/javascript"src="{% static 'SliderControl.js' %}"></script>
+	<script type="text/javascript" src="{% static 'bootstrap-datetimepicker.min.js' %}"></script>
+	<script type="text/javascript">
+	//讀入所有需求時間內的youbike站點資料
+	var allStationData = {{ stations|safe }};
+	//藉由站點id取得該站於陣列中的index
+	function getStationDataByID(id){
+		return  allStationData.map(function(e) { return e.station_ID; }).indexOf(id);
+	}
+	//依數值決定marker呈現的顏色
+	function getColor(d){
+		return d>10 ? '#00FF60':
+			d>=5 ? '#E8B50C':
+			d>=0 ? '#FF0000':
+			'gray';
+	}
+	//Draw Column Chart
+	function drawLineChart(id) {
+		var Index = getStationDataByID(id);
+		var theData = [['time','可借車輛','可還車位']];
+		theData = theData.concat(allStationData[Index]['time_series_data']);
+		var data = google.visualization.arrayToDataTable(theData);
+		var options = {
+			title: allStationData[Index].address,
+			legend: { position: 'bottom',textStyle: {color: 'gray'}},
+			backgroundColor: {fill:'#171717'},
+			titleTextStyle: {color: 'gray',fontSize: 14, fontName: 'Arial'},
+			hAxis:{textStyle:{color:'gray'}},
+			vAxis:{textStyle:{color:'gray'}},
+			bar: { groupWidth: '75%' },
+			isStacked: true
 			};
-        	var chart = new google.visualization.Histogram(document.getElementById('histogram_chart'));
-        	chart.draw(data, options);
-        }
-
-        //更新站點顏色
-        function updateDisplayColor(index,theLayerGroup,type) {
-        	theLayerGroup.eachLayer(function(station){
-        		if (station.options.timeline[index]) {
-	        		station.options.value = station.options.timeline[index][type];
-	        		station.setStyle({
-	        			color: getColor(station.options.value)
-	        		});
-        		} else {
-        			console.log(station.options.id+ " "+ station.options.type +" : no data");
-        			station.options.value = "no data";
-        			station.setStyle({
-        				color: "gray",
-        			});
-        		}
-        	});
-        }
-
-		//初始化頁面：當所有資源皆載入後呈現網站畫面
-		$(document).ready(function(){
-
-			$('#loading').hide();
-		//----------------------------------------------
-		//時間區間選擇器：讓使用者可以選擇資料起始與結束的日期
-		//---------------------------------------------- 
-			//初始化日期選擇器1
-			$('#datetimepicker1').datetimepicker({
-				format: 'YYYY-MM-DD',
-				defaultDate: "{{ date_from_default }}"
-			});
-			//初始化日期選擇器2
-			$('#datetimepicker2').datetimepicker({
-				format: 'YYYY-MM-DD',
-				useCurrent: false,
-				defaultDate: "{{ date_to_default }}"
-			});
-
-			//使起始與結束日期欄位具有連動效果
-			$('#datetimepicker1').on('dp.change', function(e){
-				$('#datetimepicker2').data("DateTimePicker").minDate(e.date);
-			})
-
-			//使起始與結束日期欄位具有連動效果
-			$('#datetimepicker2').on('dp.change', function(e){
-				$('#datetimepicker1').data("DateTimePicker").maxDate(e.date);
-			})
-
-			//在search button被點擊時觸發事件，將搜尋日期傳送至server端
-			$("#search").click(function(){
-
-				//取得目前datetimepicker1欄位內的值
-				searchDateFrom = $("#datetimepicker1").find("input").val();
-
-				//取得目前datetimepicker2欄位內的值
-				searchDateTo = $("#datetimepicker2").find("input").val();
-
-				//將日期參數加入url並重新導向刷新頁面
-				location.href = "?from_date=" + searchDateFrom + "&to_date=" + searchDateTo;
-			}) 
-
-		//----------------------------------------------
-		//Leaflet地圖：於地圖上呈現使用者所需的資訊
-		//----------------------------------------------
-
-			//產生地圖物件，並設定起始中心位置與比例尺
-			var map = L.map('map').setView([25.0408578889, 121.567904444], 12);
-
-			//使用mapbox api 輸入金鑰取得地圖底圖，並加入地圖物件中
-			var basemap =L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',{
-				attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
-				id: 'geojedi.ooj08o8c',
-				accessToken: 'pk.eyJ1IjoiZ2VvamVkaSIsImEiOiJjaWpvMDNwYnMwMHRidmFseDRhOGNrZjIwIn0.hkVHv9_Z-PpXfOLrKMlfCQ'
-			}).addTo(map);
-
-			//站點圖示屬性設定
-			customCircleMarker = L.CircleMarker.extend({
-				options: {
-					id: 0,
-					ar: 'address',
-				}
-			});
-
-			//產生youbike站點點位圖示
-			var markers_sbi = [];
-			var markers_bemp = [];
-			for (var s=0; s<allStationData.length; s++){
-				var marker_sbi = new customCircleMarker(allStationData[s].position,{
-					id: allStationData[s].station_ID,
-					ar: String(allStationData[s].address),
-					type: '可借數量',
-					value: allStationData[s]['time_series_data'][0][1],
-					timeline: allStationData[s]['time_series_data'],
-				});
-
-				var marker_bemp = new customCircleMarker(allStationData[s].position,{
-					id: allStationData[s].station_ID,
-					ar: String(allStationData[s].address),
-					type: '可還數量',
-					value: allStationData[s]['time_series_data'][0][2],
-					timeline: allStationData[s]['time_series_data'],
-				});
-
-				marker_sbi.setStyle({
-					fillOpacity: 0.5,
-					weight: 0,
-					color: getColor(marker_sbi.options.value)
-				})
-
-				marker_bemp.setStyle({
-					fillOpacity: 0.5,
-					weight: 0,
-					color: getColor(marker_bemp.options.value)
-				})
-
-				//sbi marker 可借車輛事件監聽器
-				marker_sbi.on({
-					click : function(e){
-						var theID=this.options.id;
-						drawLineChart(theID);
-						drawHistogram(theID);
-						map.panTo(e.target.getLatLng());
-					},
-					mouseover : function(e){
-						this.setStyle({
-							weight: 5,
-							opacity: 1
-						});
-						info.update(this.options)
-					},
-					mouseout : function(e){
-						this.setStyle({
-							weight: 0,
-							fillOpacity: 0.5
-						});
-						info.update();
-					},
-				});
-
-				//bemp marker 可還車輛事件監聽器
-				marker_bemp.on({
-					click : function(e){
-						var theID=this.options.id;
-						drawLineChart(theID);
-						drawHistogram(theID);
-						map.panTo(e.target.getLatLng());
-					},
-					mouseover : function(e){
-						this.setStyle({
-							weight: 5,
-							opacity: 1
-						});
-						info.update(this.options)
-					},
-					mouseout : function(e){
-						this.setStyle({
-							weight: 0,
-							fillOpacity: 0.5
-						});
-						info.update();
-					},
-				});
-
-				markers_sbi.push(marker_sbi);
-				markers_bemp.push(marker_bemp);
-
-			};
-
-			var stations_sbi = L.layerGroup(markers_sbi);
-
-			var stations_bemp = L.layerGroup(markers_bemp);
-
-			stations_sbi.addTo(map);
-
-			var overlayMaps = {
-				"可借數量":stations_sbi,
-				"可還數量":stations_bemp
-			};
-
-			
-
-			//加入地圖資訊
-			var info = L.control({position:'topright'});
-
-			info.onAdd = function (map) {
-				this._div  = L.DomUtil.create('div','info');
-				this.update();
-				return this._div;
-			};
-
-			info.update = function(station) {
-				this._div.innerHTML = '<h4>Youbike 站點資訊 </h4>' +  (station ? '<b>' + station.ar +'</b><br />'+ station.type+' : '+ station.value + ' 輛 ':'<br /> 請移動滑鼠至查詢站點');
-			}
-			info.addTo(map);
-
-			//加入圖層控制項目
-
-			L.control.layers(overlayMaps).addTo(map);
-
-			google.charts.load('current', {'packages':['corechart']});
-
-			//加入地圖圖例
-			var legend = L.control({position:'bottomright'});
-			legend.onAdd = function (map) {
-				var div = L.DomUtil.create('div','legend');
-				var grades = [0,5,10];
-				var labels = [];
-
-				for (var i = 0; i < grades.length; i++) {
-					div.innerHTML +=
-					'<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
-					grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
-				};
-				return div;
-			};
-			legend.addTo(map);
-
-			//加入時間控制滑軌
-			$( "#slider" ).slider({
-				min: 0,
-				max: allStationData[0]['time_series_data'].length-1,
-				//移動事件
-				slide: function(e,ui) {
-					updateDisplayColor(ui.value,stations_sbi,1);
-					updateDisplayColor(ui.value,stations_bemp,2);
-					$("#current-datetime").val(allStationData[0]['time_series_data'][ui.value][0]);
-				}
-			});
-			//設定滑軌初始值
-			$("#current-datetime").val(allStationData[0]['time_series_data'][0][0]);
-
+		var chart = new google.visualization.ColumnChart(document.getElementById('curve_chart'));
+		chart.draw(data, options);
+	}
+	//Draw Histogram Chart
+	function drawHistogram(id) {
+		var Index = getStationDataByID(id);
+		var theData = [['time','可借車輛','可還車輛']];
+		theData = theData.concat(allStationData[Index]['time_series_data']);
+		var data = google.visualization.arrayToDataTable(theData);
+		var options = {
+			title: 'Youbike 使用頻率分布圖',
+			legend: { position: 'none',textStyle: {color: 'gray'}},
+			backgroundColor: {fill:'#171717'},
+			hAxis:{textStyle:{color:'gray'}},
+			vAxis:{textStyle:{color:'gray'}},
+			titleTextStyle: {color:'gray',fontSize: 14, fontName: 'Arial'},
+		};
+	var chart = new google.visualization.Histogram(document.getElementById('histogram_chart'));
+	chart.draw(data, options);
+	}
+	//更新站點顏色
+	function updateDisplayColor(index,theLayerGroup,type) {
+	theLayerGroup.eachLayer(function(station){
+	if (station.options.timeline[index]) {
+		station.options.value = station.options.timeline[index][type];
+		station.setStyle({
+			color: getColor(station.options.value)
 		});
+	} else {
+		console.log(station.options.id+ " "+ station.options.type +" : no data");
+		station.options.value = "no data";
+		station.setStyle({
+			color: "gray",
+		});
+	}
+	});
+	}
+	
+	//更新站點半徑
+	function setRadius(rad,layer1,layer2) {
+		layer1.eachLayer(function(station){
+			station.setRadius(rad)
+		});
+		layer2.eachLayer(function(station){
+			station.setRadius(rad)
+		});
+	}
+	//初始化頁面：當所有資源皆載入後呈現網站畫面
+	$(document).ready(function(){
+		$('#loading').hide();
+	//----------------------------------------------
+	//時間區間選擇器：讓使用者可以選擇資料起始與結束的日期
+	//----------------------------------------------
+		//初始化日期選擇器1
+		$('#datetimepicker1').datetimepicker({
+			format: 'YYYY-MM-DD',
+			defaultDate: "{{ date_from_default }}"
+		});
+		//初始化日期選擇器2
+		$('#datetimepicker2').datetimepicker({
+			format: 'YYYY-MM-DD',
+			useCurrent: false,
+			defaultDate: "{{ date_to_default }}"
+		});
+		//使起始與結束日期欄位具有連動效果
+		$('#datetimepicker1').on('dp.change', function(e){
+			$('#datetimepicker2').data("DateTimePicker").minDate(e.date);
+		})
+		//使起始與結束日期欄位具有連動效果
+		$('#datetimepicker2').on('dp.change', function(e){
+			$('#datetimepicker1').data("DateTimePicker").maxDate(e.date);
+		})
+		//在search button被點擊時觸發事件，將搜尋日期傳送至server端
+		$("#search").click(function(){
+			//取得目前datetimepicker1欄位內的值
+			searchDateFrom = $("#datetimepicker1").find("input").val();
+			//取得目前datetimepicker2欄位內的值
+			searchDateTo = $("#datetimepicker2").find("input").val();
+			//將日期參數加入url並重新導向刷新頁面
+			location.href = "?from_date=" + searchDateFrom + "&to_date=" + searchDateTo;
+		})
+
+		$("#realtime").click(function(){
+			location.href = "/youbikerealtime";
+		})
+
+	//----------------------------------------------
+	//Leaflet地圖：於地圖上呈現使用者所需的資訊
+	//----------------------------------------------
+		//產生地圖物件，並設定起始中心位置與比例尺
+		var map = L.map('map').setView([25.0408578889, 121.567904444], 13);
+		//使用mapbox api 輸入金鑰取得地圖底圖，並加入地圖物件中
+		var basemap =L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',{
+			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+			id: 'geojedi.ooj08o8c',
+			accessToken: 'pk.eyJ1IjoiZ2VvamVkaSIsImEiOiJjaWpvMDNwYnMwMHRidmFseDRhOGNrZjIwIn0.hkVHv9_Z-PpXfOLrKMlfCQ'
+		}).addTo(map);
+		//站點圖示屬性設定
+		customCircleMarker = L.Circle.extend({
+			options: {
+				id: 0,
+				ar: 'address',
+			}
+		});
+		//產生youbike站點點位圖示
+		var markers_sbi = [];
+		var markers_bemp = [];
+		for (var s=0; s<allStationData.length; s++){
+					var marker_sbi = new customCircleMarker(allStationData[s].position,map.getZoom()*8,{
+						id: allStationData[s].station_ID,
+						ar: String(allStationData[s].address),
+						type: '可借數量',
+						value: allStationData[s]['time_series_data'][0][1],
+						timeline: allStationData[s]['time_series_data'],
+					});
+
+					var marker_bemp = new customCircleMarker(allStationData[s].position,map.getZoom()*8,{
+						id: allStationData[s].station_ID,
+						ar: String(allStationData[s].address),
+						type: '可還數量',
+						value: allStationData[s]['time_series_data'][0][2],
+						timeline: allStationData[s]['time_series_data'],
+					});
+
+					marker_sbi.setStyle({
+						fillOpacity: 0.5,
+						weight: 0,
+						color: getColor(marker_sbi.options.value)
+					})
+					marker_bemp.setStyle({
+						fillOpacity: 0.5,
+						weight: 0,
+						color: getColor(marker_bemp.options.value)
+					})
+
+					//sbi marker 可借車輛事件監聽器
+					marker_sbi.on({
+						click : function(e){
+							var theID=this.options.id;
+							drawLineChart(theID);
+							drawHistogram(theID);
+							//map.panTo(e.target.getLatLng());
+						},
+						mouseover : function(e){
+							this.setStyle({
+								weight: 5,
+								opacity: 1
+							});
+							info.update(this.options)
+						},
+						mouseout : function(e){
+							this.setStyle({
+								weight: 0,
+								fillOpacity: 0.5
+							});
+							info.update();
+						},
+					});
+					//bemp marker 可還車輛事件監聽器
+					marker_bemp.on({
+						click : function(e){
+							var theID=this.options.id;
+							drawLineChart(theID);
+							drawHistogram(theID);
+							//map.panTo(e.target.getLatLng());
+						},
+						mouseover : function(e){
+							this.setStyle({
+								weight: 5,
+								opacity: 1
+							});
+							info.update(this.options)
+						},
+						mouseout : function(e){
+							this.setStyle({
+								weight: 0,
+								fillOpacity: 0.5
+							});
+							info.update();
+						},
+					});
+					markers_sbi.push(marker_sbi);
+					markers_bemp.push(marker_bemp);
+				};
+				var stations_sbi = L.layerGroup(markers_sbi);
+				var stations_bemp = L.layerGroup(markers_bemp);
+				stations_sbi.addTo(map);
+				var overlayMaps = {
+					"可借數量":stations_sbi,
+					"可還數量":stations_bemp
+				};
+
+				//
+				map.on('zoomend', function() {
+					var currentZoom = map.getZoom()*8;
+					setRadius(currentZoom,stations_sbi,stations_bemp);
+				});
+				
+				//加入地圖資訊
+				var info = L.control({position:'topright'});
+				info.onAdd = function (map) {
+					this._div  = L.DomUtil.create('div','info');
+					this.update();
+					return this._div;
+				};
+				info.update = function(station) {
+					this._div.innerHTML = '<h4>Youbike 站點資訊 </h4>' +  (station ? '<b>' + station.ar +'</b><br />'+ station.type+' : '+ station.value + ' 輛 ':'<br /> 請移動滑鼠至查詢站點');
+				}
+				info.addTo(map);
+				//加入圖層控制項目
+				L.control.layers(overlayMaps).addTo(map);
+				google.charts.load('current', {'packages':['corechart']});
+				//加入地圖圖例
+				var legend = L.control({position:'bottomright'});
+				legend.onAdd = function (map) {
+					var div = L.DomUtil.create('div','legend');
+					var grades = [0,5,10];
+					var labels = [];
+					for (var i = 0; i < grades.length; i++) {
+						div.innerHTML +=
+						'<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+						grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+					};
+					return div;
+				};
+				legend.addTo(map);
+				//加入時間控制滑軌
+				$( "#slider" ).slider({
+					min: 0,
+					max: allStationData[0]['time_series_data'].length-1,
+					//移動事件
+					slide: function(e,ui) {
+						updateDisplayColor(ui.value,stations_sbi,1);
+						updateDisplayColor(ui.value,stations_bemp,2);
+						$("#current-datetime").val(allStationData[0]['time_series_data'][ui.value][0]);
+					}
+				});
+				//設定滑軌初始值
+				$("#current-datetime").val(allStationData[0]['time_series_data'][0][0]);
+			});
 		</script>
 	</html>
