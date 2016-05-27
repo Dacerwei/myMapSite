@@ -40,3 +40,5 @@ class lasted_station(models.Model):
 	def __str__(self):
 		return str(self.sno) +self.datetime.strftime(" %Y/%m/%d %H:%M")
 
+
+

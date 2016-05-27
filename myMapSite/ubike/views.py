@@ -9,6 +9,9 @@ import urllib.request
 import gzip
 import json
 from .forms import dateSearch
+import os
+from myMapSite.settings import BASE_DIR
+
 
 def youbike(request):
 	search_date_from = ""
@@ -63,6 +66,8 @@ def youbike(request):
 		'date_from_default':str(search_date_from),
 		'date_to_default':str(search_date_to),
 		'stations': allStations,
+		'mrt_point':getGeoJsonFile("mrt_point.geojson"),
+		'mrt_line':getGeoJsonFile("mrt_line.geojson"),
 		})
 
 
@@ -120,5 +125,16 @@ def station_update(new_data):
 			act = v["act"]
 			)
 
-
+def getGeoJsonFile(filename):
+	json_data = 'no data'
+	file_path = os.path.join(BASE_DIR, "ubike/static/ubike/js/"+filename)
+	with open(file_path) as json_file:
+		print('json Open succeed')
+		json_data = json.dumps(json_file.read())
+	if len(json_data) > 0 :
+		print('json load succeed')
+		return json_data
+	else:
+		print('json load failed')
+		return False
 

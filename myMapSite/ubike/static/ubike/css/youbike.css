@@ -1,9 +1,17 @@
 /* stylesheet for ubikelinechart.html */
 
-.datepicker span {
+.datepicker .label {
     color: gray;
     letter-spacing: 0.5em;
     font-weight: bold;
+}
+
+.datepicker .picker-side {
+    height: 150px;
+}
+
+.datepicker .button-side {
+    height: 150px;
 }
 
 #loading {
@@ -32,6 +40,14 @@ html body{
     background-color: black;
 }
 
+.searchButton {
+    height: 50%;
+}
+
+.realtimeButton {
+    height: 50%;
+}
+
 .searchButton .btn-primary{
 	margin-top: 20px;
 	margin-left: 10px;
@@ -41,7 +57,7 @@ html body{
 }
 
 .realtimeButton .btn-primary{
-    margin-top: 20px;
+    margin-top: 15px;
     margin-left: 10px;
     color: gray;
     background-color: #EAEAEA;
@@ -60,7 +76,7 @@ html body{
 }
 
 #map{
-    height: 600px;
+    height: 650px;
     width: 100%;
     margin: 0px auto;
     z-index: 0;
@@ -69,13 +85,13 @@ html body{
 #curve_chart{
     float: left;
     width: 100%;
-    height: 300px;
+    height: 250px;
 }
 
 #histogram_chart{
     float: left;
     width: 100%;
-    height: 300px;
+    height: 250px;
 }
 
 div h1{
@@ -94,6 +110,7 @@ div h1{
     list-style: none;
     float: left;
 }
+
 
 .chart{
     background-color: #0A0A0A;
@@ -122,6 +139,19 @@ div h1{
     border-radius: 5px;
 }
 .info h4 {
-    margin: 0 0 5px;
+    font-size: 12pt;
+    text-align: center;
+    letter-spacing: 0.1px;
+    padding: 2px;
+    margin: 0px;
     color: #777;
+}
+
+.info p {
+    font-size: 8pt;
+    text-align: center;
+    letter-spacing: 0.5px;
+    padding: 1px;
+    margin: 0px;
+    line-height: 1.5em;    
 }
